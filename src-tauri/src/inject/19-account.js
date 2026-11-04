@@ -31,10 +31,13 @@
     await loadModules(['LSDatabaseSingleton']);
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
     contactPicture = (await db.tables.contacts.get(int64Key(me)))?.profilePictureUrl || contactPicture;
-    // A theme can show your picture and name (var(--fmess-avatar), attr(data-fmess-name)).
+    // A theme can show your picture and name (var(--fmess-avatar), attr(data-fmess-name)
+    // on <html>, or var(--fmess-name), a CSS string, anywhere).
     const root = document.documentElement;
     if (contactPicture) root.style.setProperty('--fmess-avatar', `url("${contactPicture}")`);
-    root.setAttribute('data-fmess-name', window.require('CurrentUserInitialData').NAME || '');
+    const name = window.require('CurrentUserInitialData').NAME || '';
+    root.setAttribute('data-fmess-name', name);
+    root.style.setProperty('--fmess-name', JSON.stringify(name));
   };
   const currentAccount = () => {
     try {

@@ -43,6 +43,7 @@
   --sl-tile: rgba(249, 237, 255, 0.25);
   --sl-row-hover: rgba(249, 237, 255, 0.08);
   --sl-chrome-line: rgba(249, 237, 255, 0.22);
+  --sl-chrome-sep: rgba(249, 237, 255, 0.13);
   --sl-selected: #f9edff;
   --sl-on-selected: #39063a;
   --sl-badge: #eabdfb;
@@ -93,6 +94,7 @@ html[data-fmess-dark] {
   --sl-tile: rgba(239, 225, 245, 0.25);
   --sl-row-hover: rgba(239, 225, 245, 0.08);
   --sl-chrome-line: rgba(239, 225, 245, 0.22);
+  --sl-chrome-sep: rgba(239, 225, 245, 0.13);
   --sl-selected: #7d3986;
   --sl-on-selected: #efe1f5;
   --sl-badge: #cfa1de;
@@ -544,39 +546,20 @@ html[data-fmess-chats] [data-fmess-list] a[href="/messages/new/"] svg {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M14.232 2.207a2.5 2.5 0 0 1 3.536 0l.025.026a2.5 2.5 0 0 1 0 3.535L11.03 12.53a.75.75 0 0 1-.361.2l-3.25.75a.75.75 0 0 1-.9-.9l.75-3.25.03-.1a.75.75 0 0 1 .17-.261zm2.475 1.06a1 1 0 0 0-1.414 0l-.482.483 1.439 1.44.482-.483a1 1 0 0 0 0-1.414zM15.189 6.25l-1.44-1.44-5.067 5.068-.432 1.871 1.871-.431zM1.5 14.75v-8.5A3.75 3.75 0 0 1 5.25 2.5h4.5a.75.75 0 0 1 0 1.5h-4.5A2.25 2.25 0 0 0 3 6.25v8.5A2.25 2.25 0 0 0 5.25 17h8.5A2.25 2.25 0 0 0 16 14.75v-4.5a.75.75 0 0 1 1.5 0v4.5a3.75 3.75 0 0 1-3.75 3.75h-8.5a3.75 3.75 0 0 1-3.75-3.75'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
 }
 
-/* Messenger's search field (with its back button while searching) takes no
-   room in the list and can't be seen, but can take the focus; with it, it
-   covers the head's row, and the results show under it. */
-html[data-fmess-chats] [data-fmess-list] > div > div > div:has(input[type="search"]) {
-  z-index: 5 !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-}
-html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):not(:focus-within) {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):focus-within {
-  position: absolute !important;
-  z-index: 3 !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: -49px !important;
-  height: 49px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  padding: 0 8px 0 16px !important;
-  box-sizing: border-box !important;
-  background: var(--sl-b) !important;
+/* Messenger's search field under the head, as Slack's "Find a DM…": 28px,
+   6px corners, a faint fill and line, 8px in from the panel's sides. */
+html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]) {
+  padding: 0 8px 8px !important;
 }
 html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) {
   height: 28px !important;
   border-radius: 6px !important;
+  background: var(--sl-row-hover) !important;
+  box-shadow: inset 0 0 0 1px var(--sl-chrome-line) !important;
+}
+html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]):focus-within {
   background: var(--sl-tile) !important;
 }
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]),
 html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) * {
   box-shadow: none !important;
 }
@@ -584,18 +567,18 @@ html[data-fmess-chats] [data-fmess-list] label > span > svg {
   width: 14px !important;
   height: 14px !important;
   background: var(--sl-on-chrome);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23000' fill-rule='nonzero' d='M15 9A6 6 0 1 0 3 9a6 6 0 0 0 12 0m1.5 0c0 1.8-.636 3.452-1.694 4.745l3.474 3.475a.75.75 0 1 1-1.06 1.06l-3.475-3.474A7.5 7.5 0 1 1 16.5 9'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M14.75 3.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5zM13.5 9.25a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5m3.513 5.142a4.25 4.25 0 1 0-1.05 1.072l1.689 1.688a.75.75 0 0 0 1.06-1.061zM8.5 15.5a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 .75-.75M6.25 11a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5zM8.5 8a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0 0 1.5h5.5A.75.75 0 0 0 8.5 8'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
 }
 html[data-fmess-chats] [data-fmess-list] label > span > svg * {
   visibility: hidden;
 }
 html[data-fmess-chats] [data-fmess-list] input[type="search"] {
   height: 28px !important;
-  font-size: 13px !important;
+  font-size: 15px !important;
   color: var(--sl-on-chrome) !important;
 }
 html[data-fmess-chats] [data-fmess-list] input[type="search"]::placeholder {
-  color: var(--sl-on-chrome-3) !important;
+  color: var(--sl-on-chrome-2) !important;
 }
 
 /* Filters: Slack's pills, one line, the chosen one in the sidebar's
@@ -662,10 +645,12 @@ html[data-fmess-chats] [data-fmess-list] [role="tab"] span {
    last message under it, 6px corners, the open chat in the sidebar's
    selected colour (#f9edff with aubergine text, purple in dark). */
 html[data-fmess-chats] [data-fmess-list] [role="row"] {
-  padding-inline: 8px !important;
+  padding-inline: 0 !important;
 }
+/* Slack's DMs: rows the panel's width, a line under each. */
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] {
-  border-radius: 6px !important;
+  border-radius: 0 !important;
+  box-shadow: inset 0 -1px 0 var(--sl-chrome-sep) !important;
   --sl-row: 1;
   /* Messenger's own hover layer covers part of the row only: the row's
      fill is the theme's alone. */
@@ -674,18 +659,18 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] {
   --secondary-text: var(--sl-on-chrome-2) !important;
 }
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div {
-  min-height: 56px !important;
+  min-height: 62px !important;
   margin: 0 !important;
-  --x-paddingBlock: 10px !important;
-  --x-paddingInline: 8px !important;
-  padding: 10px 8px !important;
+  --x-paddingBlock: 9px !important;
+  --x-paddingInline: 16px !important;
+  padding: 9px 16px !important;
 }
 /* The picture, 56px in Messenger, at Slack's 36 (with its dots and badges). */
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div > div:first-child {
   flex: none !important;
   width: 36px !important;
   height: 36px !important;
-  margin-right: 12px !important;
+  margin-right: 8px !important;
   padding: 0 !important;
 }
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div > div:first-child > div {
@@ -703,8 +688,8 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:not(:has([r
 }
 @container style(--sl-row: 1) {
   span[dir="auto"] {
-    font-size: 13px !important;
-    line-height: 18px !important;
+    font-size: 15px !important;
+    line-height: 22px !important;
   }
   div > span[dir="auto"]:first-child,
   div > span[dir="auto"]:first-child span {
@@ -712,8 +697,10 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:not(:has([r
     line-height: 22px !important;
     font-weight: 900 !important;
   }
+  /* Facebook trims its lines to the letters: 5px between name and message
+     make Slack's two lines (name and message 20px apart). */
   div[style*="height: 8px"] {
-    height: 2px !important;
+    height: 5px !important;
   }
   /* The time on the name's line, at the right, as in Slack's DMs; the
      " · " before it goes. Names leave it room. */
@@ -722,10 +709,10 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:not(:has([r
   }
   div[style*="height: 8px"] + div > span:last-child:has(abbr) {
     position: absolute !important;
-    top: 3px !important;
+    top: 0 !important;
     right: 0 !important;
     padding: 0 !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     color: var(--sl-on-chrome-3) !important;
   }
   div[style*="height: 8px"] + div > span:has(+ span:last-child abbr) {
@@ -749,6 +736,7 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"][aria-current="page"],
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"][aria-current="page"]:hover {
   background: var(--sl-selected) !important;
+  box-shadow: none !important;
   --primary-text: var(--sl-on-selected) !important;
   --secondary-text: var(--sl-on-selected) !important;
   --primary-icon: var(--sl-on-selected) !important;
@@ -892,6 +880,94 @@ html[data-fmess-chats] [role="main"] [data-message-id] blockquote {
    (Messenger sets them 8px further left). */
 html[data-fmess-chats] [role="main"] [role="log"] [aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"]) > div[role="presentation"]:first-child {
   padding-left: 14px !important;
+}
+/* Everyone's messages down the left, as in Slack: yours too (Messenger lays
+   them out reversed, from the right; their first column, the read
+   receipts', is the one padded at its start), the first column 60px wide
+   (Slack's picture and its margins), the text after it. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
+  flex-direction: row !important;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:has(> [role="presentation"] > [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
+  --sl-own: 1;
+  --sl-sender-fallback: var(--fmess-avatar);
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:first-child:is([style*="--x-paddingInlineStart"], [style*="--x-paddingInlineEnd"]) {
+  flex: none !important;
+  width: 60px !important;
+  box-sizing: border-box !important;
+  padding-left: 16px !important;
+}
+@container style(--sl-own: 1) {
+  /* Inside your message, Messenger aligns everything to the right. */
+  [role="presentation"],
+  [role="none"],
+  span,
+  div {
+    align-items: flex-start !important;
+  }
+  [dir="auto"] {
+    text-align: start !important;
+  }
+}
+/* The line over a run ("You forwarded a message", a reply's quote), at the
+   text's start. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:first-child:has(> div:not([role])) {
+  align-items: stretch !important;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:first-child > div:not([role]) {
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  padding-left: 60px !important;
+}
+/* The sender's name over the first message of a run: Messenger writes it
+   for screen readers only (in a 1px box); Slack shows it, 15px black
+   weight. Over yours, your own name, where Messenger writes "You sent". */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child {
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 4px 0 0 !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 900 !important;
+  color: var(--sl-text-strong) !important;
+}
+@container style(--sl-own: 1) {
+  h4 > span:only-child {
+    font-size: 0 !important;
+  }
+  h4 > span:only-child::before {
+    content: var(--fmess-name, "You");
+    font-size: 15px;
+  }
+}
+/* The sender's picture beside that name (fMess finds it under the run's
+   last message, where Messenger shows it, and it goes from there); yours
+   from your account. Not while Hide profile pictures is on. */
+html[data-fmess-chats] {
+  --fmess-sender-pictures: 1;
+}
+html[data-fmess-sender-pictures]:not([data-fmess-hide-avatars]) [role="main"] [data-scope="messages_table"] [role="button"] > img[style*="border-radius: 50%"] {
+  visibility: hidden !important;
+}
+html[data-fmess-sender-pictures]:not([data-fmess-hide-avatars]) [role="main"] [data-fmess-sender-start]::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 16px;
+  top: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--fmess-sender-picture, var(--sl-sender-fallback, var(--sl-base-3))) center / cover no-repeat;
+  pointer-events: none;
 }
 /* People's pictures beside their messages: Slack's rounded squares, not
    circles (Messenger rounds them inline; photos in messages aren't). */

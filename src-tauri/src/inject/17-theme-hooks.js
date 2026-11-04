@@ -127,6 +127,36 @@
     true,
   );
 
+  // A theme can show the sender's picture over the first message of each run
+  // of theirs, as Slack does (--fmess-sender-pictures: 1 on :root), where
+  // Messenger shows it beside the last one only. fMess marks each run's first
+  // message, the one Messenger names its sender on for screen readers (an
+  // h4), with data-fmess-sender-start, and gives it the picture of the run's
+  // last one as --fmess-sender-picture (none on yours: themes use
+  // --fmess-avatar there); data-fmess-sender-pictures on <html> while asked.
+  // A date between messages ends a run.
+  const SENDER_START = 'data-fmess-sender-start';
+  setInterval(() => {
+    const root = document.documentElement;
+    if (!root) return;
+    const on = getComputedStyle(root).getPropertyValue('--fmess-sender-pictures').trim() === '1';
+    root.toggleAttribute('data-fmess-sender-pictures', on);
+    if (!on) return;
+    let start = null;
+    for (const row of document.querySelectorAll('[role="main"] [role="log"] [data-scope="messages_table"]')) {
+      if (!row.hasAttribute('data-message-id')) {
+        start = null;
+        continue;
+      }
+      const first = !!row.querySelector('h4');
+      if (row.hasAttribute(SENDER_START) !== first) row.toggleAttribute(SENDER_START, first);
+      if (first) start = row;
+      const src = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]')?.getAttribute('src');
+      const value = src && `url("${src.replace(/"/g, '%22')}")`;
+      if (value && start.style.getPropertyValue('--fmess-sender-picture') !== value) start.style.setProperty('--fmess-sender-picture', value);
+    }
+  }, 1000);
+
   // A theme can also ask for a search box of its own (--fmess-search-box: 1
   // on :root; the Teams look's is in its title bar): a button that focuses
   // Messenger's search field, as ⌘K does, for the theme to show. It carries
