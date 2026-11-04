@@ -52,6 +52,7 @@ body:
         - Zalo
         - WhatsApp
         - Teams
+        - Slack
     validations:
       required: false
 

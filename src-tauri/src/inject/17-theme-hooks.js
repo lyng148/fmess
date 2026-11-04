@@ -127,6 +127,44 @@
     true,
   );
 
+  // A theme can show the sender's picture over the first message of each run
+  // of theirs, as Slack does (--fmess-sender-pictures: 1 on :root), where
+  // Messenger shows it beside the last one only. fMess marks each run's first
+  // message, the one Messenger names its sender on for screen readers (an
+  // h4), with data-fmess-sender-start, and gives it the picture of the run's
+  // last one as --fmess-sender-picture, and their full name (that picture's
+  // alt) as --fmess-sender-name, a CSS string, with data-fmess-sender-named
+  // (none on yours: themes use --fmess-avatar and --fmess-name there);
+  // data-fmess-sender-pictures on <html> while asked. A date between
+  // messages ends a run.
+  const SENDER_START = 'data-fmess-sender-start';
+  setInterval(() => {
+    const root = document.documentElement;
+    if (!root) return;
+    const on = getComputedStyle(root).getPropertyValue('--fmess-sender-pictures').trim() === '1';
+    root.toggleAttribute('data-fmess-sender-pictures', on);
+    if (!on) return;
+    let start = null;
+    for (const row of document.querySelectorAll('[role="main"] [role="log"] [data-scope="messages_table"]')) {
+      if (!row.hasAttribute('data-message-id')) {
+        start = null;
+        continue;
+      }
+      const first = !!row.querySelector('h4');
+      if (row.hasAttribute(SENDER_START) !== first) row.toggleAttribute(SENDER_START, first);
+      if (first) start = row;
+      const picture = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]');
+      const src = picture?.getAttribute('src');
+      const value = src && `url("${src.replace(/"/g, '%22')}")`;
+      if (value && start.style.getPropertyValue('--fmess-sender-picture') !== value) start.style.setProperty('--fmess-sender-picture', value);
+      const name = picture?.getAttribute('alt') && JSON.stringify(picture.getAttribute('alt'));
+      if (name && start.style.getPropertyValue('--fmess-sender-name') !== name) {
+        start.style.setProperty('--fmess-sender-name', name);
+        start.setAttribute('data-fmess-sender-named', '');
+      }
+    }
+  }, 1000);
+
   // A theme can also ask for a search box of its own (--fmess-search-box: 1
   // on :root; the Teams look's is in its title bar): a button that focuses
   // Messenger's search field, as ⌘K does, for the theme to show. It carries
@@ -159,7 +197,8 @@
   // found by its icon) and picks the same emoji there, which also takes the
   // reaction back if it is already yours; an emoji the picker doesn't show
   // just closes it.
-  const REACT_ICON = 'M111 203a9.5';
+  // Facebook redrew it in November 2026 (a smiley in a 20px box); both.
+  const REACT_ICONS = ['M111 203a9.5', 'M13.5 10a1.5 1.5 0 1 0 0-3'];
   // Messenger's emoji URLs carry a checksum, so they are learnt from the
   // pictures it shows (its reaction picker has these six); one not seen yet
   // is written as text.
@@ -188,7 +227,7 @@
   };
   const reactButton = (row) =>
     [...row.querySelectorAll('[role="toolbar"] [role="button"]')].find((button) =>
-      button.querySelector('svg path')?.getAttribute('d')?.startsWith(REACT_ICON),
+      REACT_ICONS.some((icon) => button.querySelector('svg path')?.getAttribute('d')?.startsWith(icon)),
     );
   const addQuickReactions = (row) => {
     const list = quickReactionList();
