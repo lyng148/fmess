@@ -159,7 +159,8 @@
   // found by its icon) and picks the same emoji there, which also takes the
   // reaction back if it is already yours; an emoji the picker doesn't show
   // just closes it.
-  const REACT_ICON = 'M111 203a9.5';
+  // Facebook redrew it in November 2026 (a smiley in a 20px box); both.
+  const REACT_ICONS = ['M111 203a9.5', 'M13.5 10a1.5 1.5 0 1 0 0-3'];
   // Messenger's emoji URLs carry a checksum, so they are learnt from the
   // pictures it shows (its reaction picker has these six); one not seen yet
   // is written as text.
@@ -188,7 +189,7 @@
   };
   const reactButton = (row) =>
     [...row.querySelectorAll('[role="toolbar"] [role="button"]')].find((button) =>
-      button.querySelector('svg path')?.getAttribute('d')?.startsWith(REACT_ICON),
+      REACT_ICONS.some((icon) => button.querySelector('svg path')?.getAttribute('d')?.startsWith(icon)),
     );
   const addQuickReactions = (row) => {
     const list = quickReactionList();
