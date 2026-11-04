@@ -885,14 +885,14 @@ html[data-fmess-chats] [role="main"] [role="log"] [aria-hidden="true"]:not([data
    them out reversed, from the right; their first column, the read
    receipts', is the one padded at its start), the first column 60px wide
    (Slack's picture and its margins), the text after it. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presentation"]:has(> [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
   flex-direction: row !important;
 }
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:has(> [role="presentation"] > [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:has([role="presentation"] > [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
   --sl-own: 1;
   --sl-sender-fallback: var(--fmess-avatar);
 }
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:first-child:is([style*="--x-paddingInlineStart"], [style*="--x-paddingInlineEnd"]) {
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presentation"] > [role="presentation"]:first-child:is([style*="--x-paddingInlineStart"], [style*="--x-paddingInlineEnd"]) {
   flex: none !important;
   width: 60px !important;
   box-sizing: border-box !important;
@@ -920,6 +920,11 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="pres
   justify-content: flex-start !important;
   padding-left: 60px !important;
 }
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 [role="presentation"] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  align-items: flex-start !important;
+}
 /* The sender's name over the first message of a run: Messenger writes it
    for screen readers only (in a 1px box); Slack shows it, 15px black
    weight. Over yours, your own name, where Messenger writes "You sent". */
@@ -940,10 +945,10 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:onl
   color: var(--sl-text-strong) !important;
 }
 @container style(--sl-own: 1) {
-  h4 > span:only-child {
+  html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child {
     font-size: 0 !important;
   }
-  h4 > span:only-child::before {
+  html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child::before {
     content: var(--fmess-name, "You");
     font-size: 15px;
   }
