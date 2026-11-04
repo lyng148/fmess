@@ -871,6 +871,13 @@ html[data-fmess-chats] [role="main"] [data-message-id] a[href] {
 html[data-fmess-chats] [role="main"] [data-message-id] a[href]:hover {
   text-decoration: underline !important;
 }
+/* A link's preview (its picture, title and site) keeps a card of its own:
+   messages have no bubbles, the preview its grey. */
+html[data-fmess-chats] [role="main"] [data-message-id] [role="presentation"]:has(> div > div > div > a[role="link"][href]) {
+  background: var(--sl-reaction) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
 /* A quote in a message ("> …"): Slack's grey bar and the text's colour. */
 html[data-fmess-chats] [role="main"] [data-message-id] blockquote {
   --secondary-text-on-media: var(--sl-text) !important;
@@ -891,6 +898,16 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presen
 html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:has([role="presentation"] > [role="presentation"]:first-child[style*="--x-paddingInlineStart"]) {
   --sl-own: 1;
   --sl-sender-fallback: var(--fmess-avatar);
+  --sl-name: var(--fmess-name, "You");
+  --sl-named: 1;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"][data-fmess-sender-named] {
+  --sl-name: var(--fmess-sender-name);
+  --sl-named: 1;
+}
+/* A reply: the run's line says "… replied to you" over the quote. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:has(> div:not([role]) [role="button"]) {
+  --sl-reply: 1;
 }
 html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presentation"] > [role="presentation"]:first-child:is([style*="--x-paddingInlineStart"], [style*="--x-paddingInlineEnd"]) {
   flex: none !important;
@@ -898,14 +915,14 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presen
   box-sizing: border-box !important;
   padding-left: 16px !important;
 }
+/* Inside your message, Messenger stacks the bubble and what hangs off it
+   (reactions, a quote) to the right: to the left, in the two columns that
+   hold them only (a call's card, a button inside, keep their centring). */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presentation"] > [role="presentation"]:nth-child(2) > div > [role="presentation"] > :is(div, span),
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="presentation"] > [role="presentation"]:nth-child(2) > div > [role="presentation"] > div > span {
+  align-items: flex-start !important;
+}
 @container style(--sl-own: 1) {
-  /* Inside your message, Messenger aligns everything to the right. */
-  [role="presentation"],
-  [role="none"],
-  span,
-  div {
-    align-items: flex-start !important;
-  }
   [dir="auto"] {
     text-align: start !important;
   }
@@ -944,14 +961,84 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:onl
   font-weight: 900 !important;
   color: var(--sl-text-strong) !important;
 }
-@container style(--sl-own: 1) {
+@container style(--sl-named: 1) {
   html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child {
     font-size: 0 !important;
   }
   html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child::before {
-    content: var(--fmess-name, "You");
+    content: var(--sl-name);
     font-size: 15px;
   }
+}
+/* A reply, as Slack shows one: the sender's name, "replied to a message:"
+   and the quote in Slack's blue on one line, then the message. Messenger's
+   own line ("Nguyễn replied to you") gives way to the name. */
+@container style(--sl-named: 1) and style(--sl-reply: 1) {
+  html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > div {
+    display: none !important;
+  }
+  html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4::before {
+    content: var(--sl-name);
+    display: block;
+    padding-top: 4px;
+    font: 900 15px/22px "fMess Slack Lato", Slack-Lato, Lato, sans-serif;
+    color: var(--sl-text-strong);
+  }
+}
+/* The quote: Messenger tucks it under the reply's bubble (its box is
+   shorter than it is); without bubbles the two overlapped. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) {
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) > [role="presentation"] {
+  margin: 0 !important;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"] {
+  --sl-quote-msg: 1;
+  display: flex !important;
+  align-items: flex-start !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+@container style(--sl-quote-msg: 1) {
+  [role="button"] > div {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+  }
+  div,
+  span {
+    padding: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+  }
+  div[dir="auto"],
+  span[dir="auto"],
+  span:not(:has(*)),
+  div:not(:has(*)) {
+    color: var(--sl-link) !important;
+    font-size: 15px !important;
+    line-height: 22px !important;
+    font-weight: 700 !important;
+  }
+  /* A picture or a video quoted: small, as Slack's file chips. */
+  img,
+  video {
+    max-height: 72px !important;
+    width: auto !important;
+    border-radius: 6px !important;
+  }
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"]::before {
+  flex: none;
+  margin-right: 4px;
+  color: var(--sl-text-3);
+  font: 400 15px/22px "fMess Slack Lato", Slack-Lato, Lato, sans-serif;
+}
+html[lang^="en"] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"]::before {
+  content: "replied to a message:";
 }
 /* The sender's picture beside that name (fMess finds it under the run's
    last message, where Messenger shows it, and it goes from there); yours

@@ -132,9 +132,11 @@
   // Messenger shows it beside the last one only. fMess marks each run's first
   // message, the one Messenger names its sender on for screen readers (an
   // h4), with data-fmess-sender-start, and gives it the picture of the run's
-  // last one as --fmess-sender-picture (none on yours: themes use
-  // --fmess-avatar there); data-fmess-sender-pictures on <html> while asked.
-  // A date between messages ends a run.
+  // last one as --fmess-sender-picture, and their full name (that picture's
+  // alt) as --fmess-sender-name, a CSS string, with data-fmess-sender-named
+  // (none on yours: themes use --fmess-avatar and --fmess-name there);
+  // data-fmess-sender-pictures on <html> while asked. A date between
+  // messages ends a run.
   const SENDER_START = 'data-fmess-sender-start';
   setInterval(() => {
     const root = document.documentElement;
@@ -151,9 +153,15 @@
       const first = !!row.querySelector('h4');
       if (row.hasAttribute(SENDER_START) !== first) row.toggleAttribute(SENDER_START, first);
       if (first) start = row;
-      const src = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]')?.getAttribute('src');
+      const picture = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]');
+      const src = picture?.getAttribute('src');
       const value = src && `url("${src.replace(/"/g, '%22')}")`;
       if (value && start.style.getPropertyValue('--fmess-sender-picture') !== value) start.style.setProperty('--fmess-sender-picture', value);
+      const name = picture?.getAttribute('alt') && JSON.stringify(picture.getAttribute('alt'));
+      if (name && start.style.getPropertyValue('--fmess-sender-name') !== name) {
+        start.style.setProperty('--fmess-sender-name', name);
+        start.setAttribute('data-fmess-sender-named', '');
+      }
     }
   }, 1000);
 
