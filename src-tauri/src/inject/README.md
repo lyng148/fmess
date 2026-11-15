@@ -30,7 +30,7 @@ earlier part declares, and the numbers set that order.
 | 19-account | Your picture and the account menu |
 | 19-downloads | Downloads from Facebook's CDN and unnamed ones; says when one is done, with Show in Finder |
 | 19-passkeys | Says why a passkey sign-in can't work in fMess and what to do instead (#9) |
-| 19-recover | Reloads the page by itself after the computer slept, when a connection stays down, and on "Couldn't load chats" |
+| 19-recover | Reloads the page by itself after the computer slept, when a connection stays down, on "Couldn't load chats" and when the encrypted chats stay stuck (then starts fMess again: recover.rs) |
 | 20-theme | The theme picked in Settings; settings from fMess; closes the function |
 
 The joined script is the same text the single file was; `node
