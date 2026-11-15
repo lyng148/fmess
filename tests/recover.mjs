@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 const part = readFileSync(new URL('../src-tauri/src/inject/19-recover.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
 function world({ online = true, stored = null } = {}) {
-  const w = { now: 1_000_000_000, timers: [], reloads: 0, online, notes: [], typing: '' };
+  const w = { now: 1_000_000_000, timers: [], reloads: 0, online, notes: [], typing: '', rows: [] };
   const later = (fn, ms, every) => {
     const timer = { at: w.now + ms, fn, every };
     w.timers.push(timer);
@@ -63,7 +63,11 @@ function world({ online = true, stored = null } = {}) {
     },
     sessionStorage: { getItem: (k) => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v) },
     location: { reload: () => (w.reloads += 1) },
-    document: { get activeElement() { return w.typing ? box : null; } },
+    document: {
+      get activeElement() { return w.typing ? box : null; },
+      // The chat list's encrypted chats: rows of text.
+      querySelectorAll: () => w.rows.map((innerText) => ({ innerText, getBoundingClientRect: () => ({ width: 300 }) })),
+    },
     navigator: { onLine: true },
     AbortController,
   };
@@ -80,8 +84,10 @@ const MIN = 60_000;
 {
   const w = world();
   w.sleep(6 * MIN);
-  await w.advance(20_000);
-  check('a 6-minute sleep reloads', w.reloads === 1, w.notes);
+  await w.advance(30_000);
+  const soon = w.reloads;
+  await w.advance(15_000);
+  check('a 6-minute sleep reloads, once awake 20 s', soon === 0 && w.reloads === 1, { soon, notes: w.notes });
 }
 {
   const w = world();
@@ -96,7 +102,7 @@ const MIN = 60_000;
   await w.advance(30_000);
   const whileTyping = w.reloads;
   w.typing = '';
-  await w.advance(5_000);
+  await w.advance(10_000);
   check('after sleep, no reload while typing; once sent, it reloads', whileTyping === 0 && w.reloads === 1, { whileTyping, reloads: w.reloads });
 }
 {
@@ -116,7 +122,7 @@ const MIN = 60_000;
   socket.close();
   await w.advance(20_000);
   const early = w.reloads;
-  await w.advance(60_000);
+  await w.advance(90_000);
   check('a socket that worked and stays down gets a reload (not at once)', early === 0 && w.reloads === 1, { early, reloads: w.reloads, notes: w.notes });
 }
 {
@@ -146,7 +152,7 @@ const MIN = 60_000;
   w.online = true;
   await w.advance(20_000);
   const justBack = w.reloads;
-  await w.advance(40_000);
+  await w.advance(70_000);
   check('offline: no reload; back: a grace for Messenger, then a reload', offline === 0 && justBack === 0 && w.reloads === 1, { offline, justBack, reloads: w.reloads });
 }
 {
@@ -162,7 +168,7 @@ const MIN = 60_000;
 {
   const w = world();
   w.page.recover('chats error');
-  await w.advance(1000);
+  await w.advance(25_000);
   check("Messenger's error screen: it reloads", w.reloads === 1, w.notes);
 }
 {
@@ -174,8 +180,42 @@ const MIN = 60_000;
 {
   const w = world({ stored: (now) => ({ at: now - 5 * MIN, reason: 'slept 400 s' }) });
   w.page.recover('chats error');
-  await w.advance(1000);
+  await w.advance(25_000);
   check('the error screen after a reload for something else: it reloads', w.reloads === 1, w.notes);
+}
+{
+  // A dark wake: a Mac with its lid shut wakes for a few seconds, then
+  // sleeps again (0.1.36 reloaded there, and the reload was cut short).
+  const w = world();
+  w.sleep(6 * MIN);
+  await w.advance(4_000);
+  w.sleep(15 * MIN);
+  await w.advance(4_000);
+  w.sleep(20 * MIN);
+  await w.advance(10_000);
+  const dark = w.reloads;
+  await w.advance(30_000);
+  check('dark wakes between sleeps: no reload in them; once awake 20 s, one', dark === 0 && w.reloads === 1, { dark, reloads: w.reloads, notes: w.notes });
+}
+{
+  const w = world();
+  w.rows = ['Ann', 'Bob', 'Cy', 'Dee'];
+  await w.advance(80_000);
+  const early = w.reloads;
+  await w.advance(60_000);
+  check('encrypted chats stuck (no last message) for 90 s: a reload', early === 0 && w.reloads === 1, { early, reloads: w.reloads, notes: w.notes });
+}
+{
+  const w = world();
+  w.rows = ['Ann\nhi · 2m', 'Bob', 'Cy\nok · 1h', 'Dee'];
+  await w.advance(5 * MIN);
+  check('some encrypted chats loaded: no reload', w.reloads === 0, w.notes);
+}
+{
+  const w = world({ stored: (now) => ({ at: now - 3 * MIN, reason: 'encrypted chats stuck' }) });
+  w.rows = ['Ann', 'Bob', 'Cy', 'Dee'];
+  await w.advance(5 * MIN);
+  check('still stuck right after reloading for it: no reload loop', w.reloads === 0, w.notes);
 }
 
 console.log(results.join('\n'));

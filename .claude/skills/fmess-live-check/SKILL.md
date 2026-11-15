@@ -141,6 +141,18 @@ Accessibility permission and the pointer doesn't move. A probe that returns
 `"again"` runs again `FMESS_PROBE_DELAY` seconds later, after a reload too:
 keep where it is in `sessionStorage` (focus-check.js does).
 
+## Dark wakes (0.1.36)
+
+A Mac with its lid shut wakes in the dark for a few seconds every 15–20
+minutes (`pmset -g log | grep DarkWake`) and sleeps again. 0.1.36 reloaded
+there, the reload was cut short by the next sleep, and the encrypted chats
+stayed on grey bars and a spinner, with no error screen, until fMess was
+quit. 19-recover now waits until the computer has been awake 20 s, and
+reloads when every encrypted chat in the list stays blank for 90 s.
+`tests/recover.mjs` has both; a real dark wake can't be made up here, so
+when someone reports a stuck morning, read `pmset -g log` around the time
+the page's process started (`ps -o lstart -p <WebContent pid>`).
+
 ## Still by hand
 
 - Windows: the real toast sound (a `test build` labelled PR; install it in the

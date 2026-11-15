@@ -18,9 +18,17 @@
   //    Reload; fMess reloads once by itself. Should the screen come back
   //    soon after, it stays, for Messenger's own Reload (which can also clear
   //    and fetch again the encrypted chats stored on this computer).
+  //  - Encrypted chats that never load, with no error screen: their rows in
+  //    the list show grey bars where the last message and its time go, and
+  //    an open one spins for good. STUCK_MS of that while online reloads. Seen after a reload that a Mac's dark wake
+  //    cut short (below). Treated as the error screen.
   // A reload waits for an empty message box (a message being typed is let be
-  // until it's sent) and for Facebook to answer, and comes at most every
-  // AGAIN_MS. Messages left waiting go out after it.
+  // until it's sent), for Facebook to answer and for the computer to have
+  // been awake STEADY_MS, and comes at most every AGAIN_MS. Messages left
+  // waiting go out after it. A Mac wakes in the dark for a few seconds now
+  // and then (DarkWake: its lid shut, for mail or backups) and sleeps again:
+  // a reload there was cut short mid-load and left the encrypted chats stuck
+  // until fMess was quit (0.1.36, a night's sleep).
   const RECOVER = {
     tickMs: 15_000,
     sleptMs: 5 * 60_000,
@@ -28,6 +36,8 @@
     retryMs: 3_000,
     againMs: 2 * 60_000,
     chatsErrorAgainMs: 10 * 60_000,
+    steadyMs: 20_000,
+    stuckMs: 90_000,
   };
   // Debug builds: what happened, for live checks (with the time, in ms).
   const recoverNote = (text) => window.__fmessErrors?.push(`recover: ${text} @${Date.now()}`);
@@ -104,15 +114,24 @@
   const recover = (reason) => {
     if (recovering || window.opener) return;
     const last = lastRecovery();
-    const again = reason === 'chats error' ? RECOVER.chatsErrorAgainMs : RECOVER.againMs;
-    if (last && Date.now() - last.at < again && (reason !== 'chats error' || last.reason === reason)) {
+    const chats = reason === 'chats error' || reason === 'encrypted chats stuck';
+    const again = chats ? RECOVER.chatsErrorAgainMs : RECOVER.againMs;
+    if (last && Date.now() - last.at < again && (!chats || last.reason === reason)) {
       recoverNote(`not again so soon: ${reason}`);
       return;
     }
     recovering = true;
     recoverNote(reason);
+    // Awake since when: the tries come every few seconds, so a longer gap
+    // between two is a sleep, and the count starts again.
+    let awakeSince = Date.now();
+    let lastTry = awakeSince;
     const attempt = async () => {
-      if (!typing() && navigator.onLine !== false && (await answering())) {
+      const now = Date.now();
+      if (now - lastTry > RECOVER.retryMs + 12_000) awakeSince = now;
+      lastTry = now;
+      const awake = now - awakeSince >= RECOVER.steadyMs;
+      if (awake && !typing() && navigator.onLine !== false && (await answering())) {
         recoverNote('reloading');
         try {
           sessionStorage.setItem('fmess.recovered', JSON.stringify({ at: Date.now(), reason }));
@@ -131,11 +150,25 @@
     let lastTick = Date.now();
     // Since when Facebook has answered while a socket was down.
     let answeringSince = 0;
+    // Since when every encrypted chat in the list has shown no last message.
+    let stuckSince = 0;
+    const encryptedChatsStuck = () => {
+      const rows = [...(document.querySelectorAll?.('[role="navigation"] [role="grid"] a[href*="/e2ee/t/"]') ?? [])].filter(
+        (row) => row.getBoundingClientRect().width > 0,
+      );
+      // A loaded row has the name, the last message and its time; a stuck one
+      // the name alone (grey bars for the rest). By lines, not words: no
+      // language's text is matched.
+      return rows.length >= 3 && rows.every((row) => row.innerText.split('\n').filter((line) => line.trim()).length <= 1);
+    };
     const tick = async (now = Date.now()) => {
       const slept = now - lastTick - RECOVER.tickMs;
       lastTick = now;
       if (recovering) return;
       if (slept >= RECOVER.sleptMs) return recover(`slept ${Math.round(slept / 1000)} s`);
+      if (!encryptedChatsStuck() || navigator.onLine === false) stuckSince = 0;
+      else if (!stuckSince) stuckSince = now;
+      else if (now - stuckSince >= RECOVER.stuckMs) return recover('encrypted chats stuck');
       const dead = deadSockets(now);
       if (!dead.length || !(await answering())) {
         answeringSince = 0;
