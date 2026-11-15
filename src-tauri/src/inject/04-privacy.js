@@ -198,7 +198,8 @@
       filter: grayscale(1) contrast(0) var(--fmess-redact-avatar) !important;
     }
   `;
-  withRoot((root) => root.append(redactStyle));
+  // In the page only while redacting: its :has() rules cost WebKit a look at
+  // the chat each time Messenger adds messages, even with the mode off.
 
   const updateRedactions = (root = document) => {
     if (!privacy.redactMode) return;
@@ -254,7 +255,7 @@
   const setRedactMode = (enabled) => {
     if (enabled === privacy.redactMode) return;
     privacy.redactMode = enabled;
-    withRoot((root) => root.toggleAttribute(REDACT, enabled));
+    withRoot((root) => (root.toggleAttribute(REDACT, enabled), enabled ? root.append(redactStyle) : redactStyle.remove()));
     redactWatcher.disconnect();
     cancelAnimationFrame(redactFrame);
     redactFrame = 0;

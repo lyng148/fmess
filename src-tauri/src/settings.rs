@@ -36,7 +36,7 @@ pub struct Settings {
     pub block_typing: bool,
     /// Show initials in place of people's pictures.
     pub hide_avatars: bool,
-    /// Blur message text, contact names, and media for screenshots or support.
+    /// Mask message text, names and media, for screenshots and screen sharing.
     pub redact_mode: bool,
     /// Fields check spelling. It knows only the system's languages: on a
     /// Windows set up in English nearly every Vietnamese word is underlined.
