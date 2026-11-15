@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 const part = readFileSync(new URL('../src-tauri/src/inject/19-recover.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
 function world({ online = true, stored = null } = {}) {
-  const w = { now: 1_000_000_000, timers: [], reloads: 0, online, notes: [], typing: '', rows: [] };
+  const w = { now: 1_000_000_000, timers: [], reloads: 0, online, notes: [], typing: '', rows: [], loadedAt: 1_000_000_000 - 10 * 60_000, path: '/messages/', chat: null };
   const later = (fn, ms, every) => {
     const timer = { at: w.now + ms, fn, every };
     w.timers.push(timer);
@@ -49,7 +49,16 @@ function world({ online = true, stored = null } = {}) {
     }
   }
   const storage = new Map(stored ? [['fmess.recovered', JSON.stringify(stored(w.now))]] : []);
-  const window = { WebSocket: FakeSocket, __fmessDebug: true, __fmessErrors: w.notes, opener: null };
+  const window = Object.assign(new EventTarget(), { WebSocket: FakeSocket, __fmessDebug: true, __fmessErrors: w.notes, opener: null });
+  w.window = window;
+  // fMess's native side: starting again, at most every 30 minutes.
+  w.restarts = 0;
+  w.restartAllowed = true;
+  const invoke = async (command) => {
+    if (command !== 'restart_for_stuck_chats' || !w.restartAllowed) return false;
+    w.restarts += 1;
+    return true;
+  };
   const box = { isContentEditable: true, get textContent() { return w.typing; } };
   const env = {
     window,
@@ -62,14 +71,20 @@ function world({ online = true, stored = null } = {}) {
       return { ok: true };
     },
     sessionStorage: { getItem: (k) => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v) },
-    location: { reload: () => (w.reloads += 1) },
+    location: { reload: () => (w.reloads += 1), get pathname() { return w.path; } },
     document: {
       get activeElement() { return w.typing ? box : null; },
       // The chat list's encrypted chats: rows of text.
       querySelectorAll: () => w.rows.map((innerText) => ({ innerText, getBoundingClientRect: () => ({ width: 300 }) })),
+      // The open chat: spinning (loading-state), or with messages.
+      querySelector: (selector) =>
+        (selector.includes('loading-state') && w.chat === 'spinning') || (selector.includes('data-message-id') && w.chat === 'messages') ? {} : null,
     },
     navigator: { onLine: true },
+    // The page loaded a while ago, unless a test says otherwise.
+    performance: { now: () => w.now - w.loadedAt },
     AbortController,
+    invoke,
   };
   const run = new Function(...Object.keys(env), `${part}\nreturn { recover };`);
   w.page = run(...Object.values(env));
@@ -216,6 +231,64 @@ const MIN = 60_000;
   w.rows = ['Ann', 'Bob', 'Cy', 'Dee'];
   await w.advance(5 * MIN);
   check('still stuck right after reloading for it: no reload loop', w.reloads === 0, w.notes);
+}
+{
+  // Messenger's error screen right after the page loaded: not before 30 s.
+  const w = world();
+  w.loadedAt = w.now;
+  w.page.recover('chats error');
+  await w.advance(25_000);
+  const early = w.reloads;
+  await w.advance(10_000);
+  check('no reload in the page\'s first 30 s', early === 0 && w.reloads === 1, { early, reloads: w.reloads });
+}
+{
+  // Messenger says its worker hangs: twice in two minutes, a reload.
+  const w = world();
+  const hang = () => {
+    const event = new Event('unhandledrejection');
+    event.reason = new Error('Bridge route searchFTSReportTabAlive timed out, WorkerHealthStatus: shared_exists_and_connected');
+    w.window.dispatchEvent(event);
+  };
+  hang();
+  await w.advance(30_000);
+  const once = w.reloads;
+  hang();
+  await w.advance(30_000);
+  check("Messenger's worker hangs twice: a reload", once === 0 && w.reloads === 1 && w.restarts === 0, { once, reloads: w.reloads, notes: w.notes });
+}
+{
+  // Stuck again within 10 minutes of reloading for it: fMess starts again.
+  const w = world({ stored: (now) => ({ at: now - 3 * MIN, reason: 'encrypted chats stuck' }) });
+  w.page.recover('encrypted chats stuck');
+  await w.advance(30_000);
+  check('stuck again right after a reload for it: fMess starts again', w.reloads === 0 && w.restarts === 1, { reloads: w.reloads, restarts: w.restarts, notes: w.notes });
+}
+{
+  // The native side says no (it started again under 30 minutes ago).
+  const w = world({ stored: (now) => ({ at: now - 3 * MIN, reason: 'encrypted chats stuck' }) });
+  w.restartAllowed = false;
+  w.page.recover('encrypted chats stuck');
+  await w.advance(60_000);
+  check('…but not again within 30 minutes, and no reload loop', w.reloads === 0 && w.restarts === 0 && w.notes.some((n) => n.includes('not again so soon')), { reloads: w.reloads, notes: w.notes });
+}
+{
+  // The open encrypted chat spins with no message of its own.
+  const w = world();
+  w.path = '/messages/e2ee/t/123/';
+  w.chat = 'spinning';
+  await w.advance(50_000);
+  const early = w.reloads;
+  await w.advance(60_000);
+  check('an open encrypted chat spinning 60 s: a reload', early === 0 && w.reloads === 1, { early, reloads: w.reloads, notes: w.notes });
+}
+{
+  // Older messages loading at the top of a chat that shows its messages.
+  const w = world();
+  w.path = '/messages/e2ee/t/123/';
+  w.chat = 'messages';
+  await w.advance(5 * MIN);
+  check('a chat with its messages: no reload', w.reloads === 0, w.notes);
 }
 
 console.log(results.join('\n'));
