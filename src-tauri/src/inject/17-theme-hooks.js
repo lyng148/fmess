@@ -134,7 +134,8 @@
   // h4), with data-fmess-sender-start, and gives it the picture of the run's
   // last one as --fmess-sender-picture, and their full name (that picture's
   // alt) as --fmess-sender-name, a CSS string, with data-fmess-sender-named
-  // (none on yours: themes use --fmess-avatar and --fmess-name there);
+  // (none on yours: themes use --fmess-avatar and --fmess-name there), plus
+  // the message's time when a date break precedes the run (--fmess-sender-time);
   // data-fmess-sender-pictures on <html> while asked. A date between
   // messages ends a run.
   const SENDER_START = 'data-fmess-sender-start';
@@ -145,14 +146,29 @@
     root.toggleAttribute('data-fmess-sender-pictures', on);
     if (!on) return;
     let start = null;
-    for (const row of document.querySelectorAll('[role="main"] [role="log"] [data-scope="messages_table"]')) {
+    let lastTime = '';
+    for (const row of document.querySelectorAll('[role="main"] [role="log"] [data-scope="messages_table"], [role="main"] [role="log"] [data-scope="date_break"]')) {
+      if (row.getAttribute('data-scope') === 'date_break') {
+        const text = (row.textContent || '').trim();
+        const timeMatch = text.match(/\b(\d{1,2}:\d{2}(?:\s*[AP]M)?)\b/i);
+        lastTime = timeMatch ? timeMatch[1] : text;
+        start = null;
+        continue;
+      }
       if (!row.hasAttribute('data-message-id')) {
         start = null;
         continue;
       }
       const first = !!row.querySelector('h4');
       if (row.hasAttribute(SENDER_START) !== first) row.toggleAttribute(SENDER_START, first);
-      if (first) start = row;
+      if (first) {
+        start = row;
+        if (lastTime) {
+          const timeStr = JSON.stringify(`  ${lastTime}`);
+          if (start.style.getPropertyValue('--fmess-sender-time') !== timeStr) start.style.setProperty('--fmess-sender-time', timeStr);
+          lastTime = '';
+        }
+      }
       const picture = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]');
       const src = picture?.getAttribute('src');
       const value = src && `url("${src.replace(/"/g, '%22')}")`;
