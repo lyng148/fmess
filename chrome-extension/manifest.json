@@ -30,7 +30,8 @@
       ],
       "css": [
         "css/layout.css",
-        "css/slack.css"
+        "css/slack.css",
+        "css/slack-fix.css"
       ],
       "js": [
         "content.js"

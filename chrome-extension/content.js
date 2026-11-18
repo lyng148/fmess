@@ -6,6 +6,7 @@
   const CHATS = 'data-fmess-chats';
   const LIST_PANE = 'data-fmess-list';
   const SENDER_START = 'data-fmess-sender-start';
+  const SEARCH_BOX_ID = 'fmess-search-box';
 
   let isEnabled = true;
 
@@ -77,7 +78,7 @@
     const composer = region && !region.contains(log) ? region : null;
     if (composer) markComposer(composer);
 
-    mark(details, 'details');
+    if (details) mark(details, 'details');
     mark(list?.querySelector('[role="button"][aria-haspopup="menu"]:not([role="grid"] *)'), 'list-menu');
 
     if (log && !(markedInfo?.isConnected && main.contains(markedInfo))) {
@@ -144,8 +145,13 @@
         }
       }
 
-      const picture = start && row.querySelector('[role="button"] > img[style*="border-radius: 50%"]');
-      const src = picture?.getAttribute('src');
+      // Query sender avatar picture from the row or button
+      const picture =
+        start &&
+        (row.querySelector('[role="button"] > img') ||
+          row.querySelector('img[style*="border-radius"]') ||
+          row.querySelector('svg image'));
+      const src = picture?.getAttribute('src') || picture?.getAttribute('href') || picture?.getAttribute('xlink:href');
       const value = src && `url("${src.replace(/"/g, '%22')}")`;
       if (value && start.style.getPropertyValue('--fmess-sender-picture') !== value) {
         start.style.setProperty('--fmess-sender-picture', value);
@@ -159,18 +165,90 @@
     }
   };
 
-  // 3. Main sync loop
+  // 3. User Avatar & Top Search Box
+  const syncChromeExtras = () => {
+    const root = document.documentElement;
+
+    // Detect user's own avatar if not yet set
+    if (!root.style.getPropertyValue('--fmess-avatar')) {
+      const userImg =
+        document.querySelector('[role="banner"] img') ||
+        document.querySelector('svg image') ||
+        document.querySelector('[aria-label*="profile"] img, [aria-label*="cá nhân"] img');
+      const userSrc = userImg?.getAttribute('src') || userImg?.getAttribute('href');
+      if (userSrc) {
+        root.style.setProperty('--fmess-avatar', `url("${userSrc}")`);
+      }
+    }
+
+    // Top Search Box (#fmess-search-box)
+    let searchBox = document.getElementById(SEARCH_BOX_ID);
+    if (!searchBox && document.body) {
+      searchBox = document.createElement('div');
+      searchBox.id = SEARCH_BOX_ID;
+      searchBox.setAttribute('role', 'button');
+      searchBox.setAttribute('tabindex', '0');
+      searchBox.textContent = 'Search in conversation / workspace';
+      searchBox.addEventListener('click', () => {
+        const input = document.querySelector('[data-fmess-list] input[type="search"]') || document.querySelector('input[type="search"]');
+        input?.focus();
+      });
+      document.body.appendChild(searchBox);
+    }
+  };
+
+  // Helper to reliably find the conversation list container
+  const findList = (main) => {
+    const grid = document.querySelector('[role="grid"]');
+    if (grid) {
+      const nav = grid.closest('[role="navigation"]');
+      if (nav) return nav;
+      let el = grid.parentElement;
+      while (el && el !== document.body) {
+        if (el.querySelector('input[type="search"]')) return el;
+        el = el.parentElement;
+      }
+      return grid.parentElement;
+    }
+
+    const search = document.querySelector('input[type="search"]');
+    if (search) {
+      const nav = search.closest('[role="navigation"]');
+      if (nav) return nav;
+    }
+
+    return main?.parentElement?.querySelector(':scope > [role="navigation"]') || null;
+  };
+
+  // Helper to find the details pane
+  const findDetails = (main) => {
+    if (!main) return null;
+    const log = main.querySelector('[role="log"]');
+    if (!log) return null;
+
+    let el = log;
+    while (el && el !== main) {
+      const row = el.parentElement;
+      if (row && row.children.length > 1 && row.firstElementChild === el) {
+        return el.nextElementSibling;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  };
+
+  // 4. Main sync loop
   const syncAll = () => {
     if (!isEnabled) {
       document.documentElement.removeAttribute(CHATS);
       document.documentElement.removeAttribute('data-fmess-dark');
       document.documentElement.removeAttribute('data-fmess-sender-pictures');
       document.querySelector(`[${LIST_PANE}]`)?.removeAttribute(LIST_PANE);
+      document.getElementById(SEARCH_BOX_ID)?.remove();
       return;
     }
 
     const root = document.documentElement;
-    // Mark as chats page
     if (!root.hasAttribute(CHATS)) root.setAttribute(CHATS, '');
     if (!root.hasAttribute('data-fmess-sender-pictures')) root.setAttribute('data-fmess-sender-pictures', '');
 
@@ -182,9 +260,7 @@
     root.toggleAttribute('data-fmess-dark', isDark);
 
     const main = document.querySelector('[role="main"]');
-    const list =
-      document.querySelector('[role="navigation"]') ||
-      main?.parentElement?.querySelector(':scope > [role="navigation"]');
+    const list = findList(main);
 
     if (list && !list.hasAttribute(LIST_PANE)) {
       document.querySelector(`[${LIST_PANE}]`)?.removeAttribute(LIST_PANE);
@@ -192,13 +268,14 @@
     }
 
     const log = main?.querySelector('[role="log"]');
-    const details = main?.querySelector('[role="complementary"]') || null;
+    const details = findDetails(main);
 
     markUi(main, list, log, details);
     syncSenderInfo();
+    syncChromeExtras();
   };
 
-  // 4. Typing turns like into send
+  // 5. Typing turns like into send
   let typedFrame = 0;
   document.addEventListener(
     'input',
@@ -215,7 +292,7 @@
     { capture: true, passive: true }
   );
 
-  // 5. Clicks and DOM events re-trigger sync
+  // 6. Clicks and DOM events re-trigger sync
   document.addEventListener(
     'click',
     () => {
@@ -247,7 +324,7 @@
     document.addEventListener('DOMContentLoaded', startObserver);
   }
 
-  // 6. Listen for toggle from extension popup
+  // 7. Listen for toggle from extension popup
   if (typeof chrome !== 'undefined' && chrome.storage) {
     chrome.storage.sync.get({ enabled: true }, (data) => {
       isEnabled = data.enabled !== false;

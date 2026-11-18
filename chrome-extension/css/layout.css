@@ -1,7 +1,8 @@
 /* Layout base fixes for Slack theme in Chrome */
 :root {
   --fmess-title-bar: 0px !important;
-  --header-height: 0px !important;
+  --sl-band: 40px !important;
+  --header-height: var(--sl-band, 40px) !important;
   --messenger-card-spacing: 0px !important;
   --messenger-card-corner-radius: 0px !important;
   --messenger-card-box-shadow: none !important;
@@ -14,7 +15,7 @@ html[data-fmess-chats] div[role="banner"] {
 
 html[data-fmess-chats], 
 html[data-fmess-chats] * {
-  --header-height: 0px !important;
+  --header-height: var(--sl-band, 40px) !important;
   --messenger-card-spacing: 0px !important;
   --messenger-card-corner-radius: 0px !important;
   --messenger-card-box-shadow: none !important;
