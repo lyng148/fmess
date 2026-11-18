@@ -1,5 +1,5 @@
 //! Themes change how Messenger looks: CSS that inject.js adds to the page,
-//! picked in Settings. Zalo, WhatsApp and Teams come with fMess; other themes
+//! picked in Settings. Zalo, WhatsApp, Teams and Slack come with fMess; other themes
 //! are .css files the user adds, kept in the app data folder. A theme is CSS
 //! and nothing more: no @import and no url() other than data: ones, so it
 //! can't load anything.
@@ -33,6 +33,7 @@ const BUILT_IN: &[(&str, &str)] = &[
     ("zalo", include_str!("../themes/zalo.css")),
     ("whatsapp", include_str!("../themes/whatsapp.css")),
     ("teams", include_str!("../themes/teams.css")),
+    ("slack", include_str!("../themes/slack.css")),
 ];
 const MAX_SIZE: usize = 2 * 1024 * 1024;
 
