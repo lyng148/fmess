@@ -344,9 +344,10 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([ro
   vertical-align: baseline !important;
 }
 
-/* 9. Compact Sender Name & Tight Message Gap */
+/* 9. Compact Sender Name & Tight Message Gap (Lowered 5.5px to level with top of avatar) */
 html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 {
   margin: 0 !important;
+  margin-top: 5.5px !important;
   padding: 0 !important;
   height: auto !important;
   line-height: 18px !important;
@@ -508,5 +509,38 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] div:has(> [da
   margin: 0 0 0 auto !important;
   padding: 0 !important;
 }
+
+/* 12. Sidebar: Timestamp placed directly next to contact name (like Slack & message headers) */
+div > span[dir="auto"]:first-child {
+  padding-right: 0 !important;
+  max-width: 100% !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+}
+
+[data-fmess-list] [role="row"] div:has(> div[style*="height: 8px"]) > span[dir="auto"]:first-child::after {
+  content: var(--fmess-row-time, "");
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: var(--sl-on-chrome-3, #ab9ba9) !important;
+  margin-left: 6px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  line-height: normal !important;
+  vertical-align: baseline !important;
+}
+
+[data-fmess-list] [role="row"] a[aria-current="page"] div:has(> div[style*="height: 8px"]) > span[dir="auto"]:first-child::after,
+[data-fmess-list] [role="row"] a[style*="--hosted-view-selected-state"] div:has(> div[style*="height: 8px"]) > span[dir="auto"]:first-child::after {
+  color: var(--sl-on-selected, #ffffff) !important;
+  opacity: 0.85 !important;
+}
+
+/* Hide native timestamp and separator dot from snippet row */
+[data-fmess-list] [role="row"] div[style*="height: 8px"] + div > span:has(abbr),
+[data-fmess-list] [role="row"] div[style*="height: 8px"] + div > span:has([aria-hidden="true"]) {
+  display: none !important;
+}
+
 
 

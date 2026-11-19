@@ -302,7 +302,24 @@
     }
   };
 
-  // 3. User Avatar & Top Search Box
+  // 3. Sidebar Timestamps next to Contact Name
+  const syncSidebarTimes = (list) => {
+    const root = document.documentElement;
+    if (!root || !isEnabled) return;
+
+    const rows = (list || document).querySelectorAll('[role="row"]');
+    for (const row of rows) {
+      const abbr = row.querySelector('abbr');
+      if (!abbr) continue;
+      const time = (abbr.textContent || '').trim();
+      if (time && row.getAttribute('data-fmess-time') !== time) {
+        row.setAttribute('data-fmess-time', time);
+        row.style.setProperty('--fmess-row-time', JSON.stringify(' ' + time));
+      }
+    }
+  };
+
+  // 4. User Avatar & Top Search Box
   const syncChromeExtras = () => {
     const root = document.documentElement;
 
@@ -459,6 +476,7 @@
     markUi(main, list, log, details);
     syncAvatars(list);
     syncSenderInfo();
+    syncSidebarTimes(list);
     syncActiveChat(list);
     syncChromeExtras();
     hideNativeFbElements();
