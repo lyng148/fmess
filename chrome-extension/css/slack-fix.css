@@ -549,6 +549,16 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] > div:first-c
   max-height: 49px !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure right-side action buttons (audio call, video call, info) stay pinned to far right */
+html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] div:has(> :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"])) {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] a[role="link"] {
