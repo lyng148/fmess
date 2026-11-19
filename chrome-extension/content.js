@@ -43,10 +43,22 @@
       mark(title.nextElementSibling, 'reply-quote');
     }
 
+    const isMoreActionsAria = (button) => {
+      const aria = (button.getAttribute('aria-label') || '').toLowerCase();
+      return (
+        aria.includes('more actions') ||
+        aria.includes('hành động khác') ||
+        aria.includes('close more actions') ||
+        aria.includes('đóng hành động khác')
+      );
+    };
+
     const field = [...composer.children].find((child) => child.querySelector('[role="textbox"]'));
     const buttons = [...composer.querySelectorAll('[role="button"]')];
     const pathOf = (button) => button.querySelector('svg path')?.getAttribute('d') ?? '';
-    const recording = buttons.some((button) => pathOf(button).startsWith('M8 .5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z'));
+    const recording = buttons.some(
+      (button) => !isMoreActionsAria(button) && pathOf(button).startsWith('M8 .5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z')
+    );
 
     for (const button of buttons) {
       const path = pathOf(button);
@@ -54,11 +66,119 @@
       const end = composer.lastElementChild?.tagName === 'SPAN' && composer.lastElementChild.contains(button);
       const like = button.querySelector('img') || path.startsWith(THUMBS_UP);
 
-      if (icon) mark(button, icon);
+      if (isMoreActionsAria(button)) mark(button, 'more-actions');
+      else if (icon) mark(button, icon);
       else if (!path && button.querySelector('svg')) mark(button, 'record-stop');
       else if (end) mark(button, like ? 'like' : 'send');
       else if (recording && !field?.contains(button)) mark(button, 'record-play');
       else if (!field?.contains(button)) mark(button, 'more-actions');
+    }
+
+    ensureGroupVoiceClip(composer);
+    ensureEmojiPosition(composer);
+  };
+
+  const ensureGroupVoiceClip = (composer) => {
+    const nativeVoice = composer.querySelector('[data-fmess-ui="voice-clip"]:not([data-fmess-synthetic-voice])');
+    if (nativeVoice) {
+      composer.querySelector('[data-fmess-synthetic-voice]')?.parentElement?.parentElement?.remove();
+      return;
+    }
+
+    const moreActions = composer.querySelector(
+      '[aria-label*="more actions" i], [aria-label*="hành động khác" i], [data-fmess-ui="more-actions"]'
+    );
+    if (!moreActions) return;
+
+    if (!composer.querySelector('[data-fmess-synthetic-voice]')) {
+      const voiceBtn = document.createElement('div');
+      voiceBtn.setAttribute('data-fmess-ui', 'voice-clip');
+      voiceBtn.setAttribute('data-fmess-synthetic-voice', '');
+      voiceBtn.setAttribute('role', 'button');
+      voiceBtn.setAttribute('tabindex', '0');
+      voiceBtn.setAttribute('aria-label', 'Send a voice clip');
+      voiceBtn.className = moreActions.className;
+      voiceBtn.innerHTML = `
+        <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true" class="x14rh7hd x1lliihq x1tzjh5l x1k90msu x2h7rmj x1qfuztq" style="--x-color: var(--primary-icon);">
+          <path d="M8 .5A3.5 3.5 0 0 0 4.5 4v4a3.5 3.5 0 1 0 7 0V4A3.5 3.5 0 0 0 8 .5z"></path>
+          <path d="M8.749 13.954 8.75 14v.75a.75.75 0 0 1-1.5 0V14l.001-.046A6.001 6.001 0 0 1 2 8v-.25a.75.75 0 0 1 1.5 0V8a4.5 4.5 0 1 0 9 0v-.25a.75.75 0 0 1 1.5 0V8a6.001 6.001 0 0 1-5.251 5.954z"></path>
+        </svg>
+        <div class="x1ey2m1c xtijo5x x1o0tod xg01cxk x47corl x10l6tqk x13vifvy x1ebt8du x19991ni x1dhq9h x1iwo8zk x1033uif x179ill4 x1b60jn0" role="none" data-visualcompletion="ignore"></div>
+      `;
+
+      voiceBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const curMore = composer.querySelector(
+          '[aria-label*="more actions" i], [aria-label*="hành động khác" i], [data-fmess-ui="more-actions"]'
+        );
+        if (!curMore) return;
+        curMore.click();
+        let count = 0;
+        const poll = setInterval(() => {
+          count++;
+          const voiceItem =
+            document.querySelector('[role="menuitem"][aria-label*="voice clip" i], [role="menuitem"][aria-label*="thoại" i]') ||
+            Array.from(document.querySelectorAll('[role="menuitem"]')).find((it) => {
+              const t = (it.textContent || '').toLowerCase();
+              return t.includes('voice clip') || t.includes('thoại');
+            });
+          if (voiceItem) {
+            clearInterval(poll);
+            voiceItem.click();
+          } else if (count > 25) {
+            clearInterval(poll);
+          }
+        }, 30);
+      });
+
+      const wrap = document.createElement('span');
+      wrap.className = 'html-span';
+      wrap.appendChild(voiceBtn);
+
+      const attachOrSticker =
+        composer.querySelector('div:has(> span [data-fmess-ui="sticker"])') ||
+        composer.querySelector('div:has(> span [data-fmess-ui="attach"])');
+      if (attachOrSticker && attachOrSticker.parentElement) {
+        const containerDiv = document.createElement('div');
+        containerDiv.style.order = '3';
+        containerDiv.appendChild(wrap);
+        attachOrSticker.parentElement.insertBefore(containerDiv, attachOrSticker.nextSibling);
+      }
+    }
+  };
+
+  const ensureEmojiPosition = (composer) => {
+    const emoji = composer.querySelector('[data-fmess-ui="emoji"]');
+    if (!emoji) return;
+
+    const attach = composer.querySelector('[data-fmess-ui="attach"]');
+    const toolsContainer = attach?.closest('[data-fmess-ui="composer"] > div');
+    if (!toolsContainer) return;
+
+    const voice = composer.querySelector('[data-fmess-ui="voice-clip"]');
+    const sticker = composer.querySelector('[data-fmess-ui="sticker"]');
+    const ref = voice || sticker || attach;
+    if (!ref) return;
+
+    let refDiv = ref;
+    while (refDiv && refDiv.parentElement !== toolsContainer) {
+      refDiv = refDiv.parentElement;
+    }
+
+    let emojiDiv = composer.querySelector('[data-fmess-emoji-wrap]');
+    if (!emojiDiv) {
+      emojiDiv = document.createElement('div');
+      emojiDiv.setAttribute('data-fmess-emoji-wrap', '');
+      emojiDiv.style.order = '4';
+      const emojiSpan = emoji.closest('span') || emoji;
+      emojiDiv.appendChild(emojiSpan);
+    }
+
+    if (refDiv && emojiDiv.parentElement !== toolsContainer) {
+      toolsContainer.insertBefore(emojiDiv, refDiv.nextSibling);
+    } else if (!refDiv && emojiDiv.parentElement !== toolsContainer) {
+      toolsContainer.appendChild(emojiDiv);
     }
   };
 

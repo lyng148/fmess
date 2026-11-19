@@ -89,10 +89,50 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="gri
   background: transparent !important;
 }
 
-/* "Chats" title and controls */
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1,
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1 * {
+/* Sidebar Header: "Direct messages" title only (remove "Chats"), aligned Facebook & Compose buttons */
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1 :is(a, span) {
+  display: none !important;
+}
+
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1 {
+  font-size: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1::after {
+  content: "Direct messages" !important;
+  display: block !important;
+  font: 900 18px/24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   color: #ffffff !important;
+}
+
+/* Header buttons container and alignment: Facebook & New message aligned */
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) div.x78zum5.x1q0g3np.x1diwwjn,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) div:has(> span > a[aria-label="Facebook"]) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[aria-label="Facebook"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [aria-label="New message"] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
 }
 
 /* Search input inside Chats sidebar - seamless single box */
@@ -131,7 +171,7 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) label:has(
 
 /* Conversation thread rows */
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a,
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"] {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="grid"] a[role="link"] {
   border-radius: 6px !important;
   margin: 1px 8px !important;
   padding: 6px 8px !important;
@@ -140,7 +180,7 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="li
 
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"]:hover a,
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a:hover,
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"]:hover {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="grid"] a[role="link"]:hover {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -345,4 +385,55 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] div:has(> [da
   margin-top: 1px !important;
   padding-top: 0 !important;
 }
+
+/* 10. Composer Toolbar: Voice Clip in Groups & Emoji next to Mic */
+[data-fmess-ui="composer"] [data-fmess-emoji-wrap] {
+  order: 4 !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 28px !important;
+}
+
+[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="voice-clip"]) {
+  order: 3 !important;
+}
+
+[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="sticker"]) {
+  order: 2 !important;
+}
+
+[data-fmess-ui="composer"] div:has(> span :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"])) {
+  order: 1 !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-synthetic-voice] {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-synthetic-voice]:hover {
+  background: var(--sl-press) !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-synthetic-voice] svg {
+  width: 18px !important;
+  height: 18px !important;
+  background: var(--sl-text-2) !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M10 3.5a2 2 0 0 1 2 2v3a2 2 0 1 1-4 0v-3a2 2 0 0 1 2-2m0 8.5a3.5 3.5 0 0 0 3.5-3.5v-3a3.5 3.5 0 1 0-7 0v3A3.5 3.5 0 0 0 10 12M3.5 8.25v.25a6.5 6.5 0 0 0 5.75 6.457V16.5h-1.5a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-1.5v-1.543A6.5 6.5 0 0 0 16.5 8.5v-.25a.75.75 0 0 0-1.5 0v.25a5 5 0 0 1-10 0v-.25a.75.75 0 0 0-1.5 0'/%3E%3C/svg%3E") center / 18px 18px no-repeat !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-synthetic-voice]:hover svg {
+  background: var(--sl-text-strong) !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-synthetic-voice] svg * {
+  visibility: hidden !important;
+}
+
 
