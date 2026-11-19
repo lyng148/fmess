@@ -81,7 +81,15 @@
         path.startsWith(THUMBS_UP) ||
         (!isSendAria && !path.startsWith('M16.6915026,12.4744748'));
 
+      const isEmoji =
+        icon === 'emoji' ||
+        aria.includes('emoji') ||
+        aria.includes('biểu tượng cảm xúc') ||
+        aria.includes('cảm xúc') ||
+        path.includes('210.5,405');
+
       if (isMoreActionsAria(button)) mark(button, 'more-actions');
+      else if (isEmoji) mark(button, 'emoji');
       else if (icon) mark(button, icon);
       else if (!path && button.querySelector('svg')) mark(button, 'record-stop');
       else if (end) mark(button, isLike ? 'like' : 'send');
@@ -229,6 +237,26 @@
         while (header.parentElement && !header.parentElement.contains(log)) header = header.parentElement;
         mark(header, 'chat-header');
 
+        // Hide "Active now" / "Đang hoạt động" subtitle to maintain single-line Slack header alignment
+        const headerLink = header.querySelector('a[role="link"]');
+        if (headerLink) {
+          const spans = headerLink.querySelectorAll('span');
+          for (const s of spans) {
+            const text = (s.textContent || '').trim().toLowerCase();
+            if (
+              text === 'active now' ||
+              text === 'đang hoạt động' ||
+              text.startsWith('active ') ||
+              text.startsWith('hoạt động ')
+            ) {
+              const subDiv = s.closest('div');
+              if (subDiv && !subDiv.querySelector('h1, h2, h3, [role="heading"]')) {
+                subDiv.style.setProperty('display', 'none', 'important');
+              }
+            }
+          }
+        }
+
         const buttons = [...header.querySelectorAll('[role="button"]')];
         const top = info.getBoundingClientRect().top;
         const calls = buttons
@@ -289,7 +317,24 @@
           row.querySelector('img[style*="border-radius"]') ||
           row.querySelector('svg image'));
       const src = picture?.getAttribute('src') || picture?.getAttribute('href') || picture?.getAttribute('xlink:href');
-      const value = src && `url("${src.replace(/"/g, '%22')}")`;
+      let value = src && `url("${src.replace(/"/g, '%22')}")`;
+
+      // If no picture found on row, check if this is an outgoing message (sent by "You" / "Bạn")
+      if (start) {
+        const h4 = start.querySelector('h4');
+        const h4Text = (h4?.textContent || '').trim().toLowerCase();
+        const isOwn = h4Text.startsWith('you') || h4Text.startsWith('bạn') || !start.querySelector('[role="button"] > img');
+        if (isOwn) {
+          start.setAttribute('data-fmess-own-message', '');
+          if (!value) {
+            const userAvatarSrc = detectUserAvatar();
+            if (userAvatarSrc) {
+              value = `url("${userAvatarSrc.replace(/"/g, '%22')}")`;
+            }
+          }
+        }
+      }
+
       if (value && start.style.getPropertyValue('--fmess-sender-picture') !== value) {
         start.style.setProperty('--fmess-sender-picture', value);
       }
@@ -319,19 +364,108 @@
     }
   };
 
+  // Helper to reliably locate the logged-in user's profile avatar
+  const detectUserAvatar = () => {
+    // 1. Check cached avatar from localStorage
+    try {
+      const cached = localStorage.getItem('fmess-user-avatar');
+      if (cached && cached.startsWith('http')) return cached;
+    } catch (_) {}
+
+    // 2. Scan native navigation rail for profile picture
+    const navs = document.querySelectorAll('nav, [role="navigation"]');
+    for (const nav of navs) {
+      if (nav.hasAttribute(LIST_PANE) || nav.hasAttribute('data-fmess-list')) continue;
+      const imgs = nav.querySelectorAll('img, image');
+      for (const img of imgs) {
+        const src = img.getAttribute('src') || img.getAttribute('href') || img.getAttribute('xlink:href');
+        if (src && (src.includes('fbcdn.net') || src.includes('fbsbx.com')) && !src.includes('static_resources')) {
+          try { localStorage.setItem('fmess-user-avatar', src); } catch (_) {}
+          return src;
+        }
+      }
+    }
+
+    // 3. Multi-language selectors for account/profile buttons
+    const selectors = [
+      '[aria-label*="tài khoản" i] :is(img, image)',
+      '[aria-label*="account" i] :is(img, image)',
+      '[aria-label*="profile" i] :is(img, image)',
+      '[aria-label*="cá nhân" i] :is(img, image)',
+      '[aria-label*="your profile" i] :is(img, image)',
+      'a[href*="/profile.php"] :is(img, image)',
+      '[role="banner"] :is(img, image)'
+    ];
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) {
+        const src = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('xlink:href');
+        if (src && !src.includes('static_resources')) {
+          try { localStorage.setItem('fmess-user-avatar', src); } catch (_) {}
+          return src;
+        }
+      }
+    }
+
+    // 4. Any fbcdn image outside main chat and outside chats list
+    const allImgs = document.querySelectorAll('img, image');
+    for (const img of allImgs) {
+      if (img.closest('[role="main"]') || img.closest('[data-fmess-list]')) continue;
+      const src = img.getAttribute('src') || img.getAttribute('href') || img.getAttribute('xlink:href');
+      if (src && (src.includes('fbcdn.net') || src.includes('fbsbx.com')) && !src.includes('static_resources')) {
+        try { localStorage.setItem('fmess-user-avatar', src); } catch (_) {}
+        return src;
+      }
+    }
+
+    // 5. Fallback via cookie c_user or embedded USER_ID scripts
+    let userId = null;
+    const cUserMatch = document.cookie.match(/\bc_user=(\d+)\b/);
+    if (cUserMatch) {
+      userId = cUserMatch[1];
+    } else {
+      const scripts = document.querySelectorAll('script');
+      for (const s of scripts) {
+        const text = s.textContent;
+        if (!text || text.length > 300000) continue;
+        const m = text.match(/"USER_ID":"(\d+)"/) || text.match(/"actorID":"(\d+)"/) || text.match(/"ACCOUNT_ID":"(\d+)"/);
+        if (m && m[1] && m[1] !== '0') {
+          userId = m[1];
+          break;
+        }
+      }
+    }
+
+    if (userId) {
+      const graphSrc = `https://graph.facebook.com/${userId}/picture?type=large`;
+      try {
+        localStorage.setItem('fmess-user-avatar', graphSrc);
+        // Silently resolve redirect to fbcdn CDN URL and update cache
+        fetch(graphSrc, { redirect: 'follow' })
+          .then((res) => {
+            if (res.url && res.url.includes('fbcdn')) {
+              localStorage.setItem('fmess-user-avatar', res.url);
+              document.documentElement.style.setProperty('--fmess-avatar', `url("${res.url.replace(/"/g, '%22')}")`);
+            }
+          })
+          .catch(() => {});
+      } catch (_) {}
+      return graphSrc;
+    }
+
+    return null;
+  };
+
   // 4. User Avatar & Top Search Box
   const syncChromeExtras = () => {
     const root = document.documentElement;
 
-    // Detect user's own avatar if not yet set
-    if (!root.style.getPropertyValue('--fmess-avatar')) {
-      const userImg =
-        document.querySelector('[role="banner"] img') ||
-        document.querySelector('svg image') ||
-        document.querySelector('[aria-label*="profile"] img, [aria-label*="cá nhân"] img');
-      const userSrc = userImg?.getAttribute('src') || userImg?.getAttribute('href');
-      if (userSrc) {
-        root.style.setProperty('--fmess-avatar', `url("${userSrc}")`);
+    // Detect user's own avatar and set --fmess-avatar
+    const userSrc = detectUserAvatar();
+    if (userSrc) {
+      const avatarUrl = `url("${userSrc.replace(/"/g, '%22')}")`;
+      if (root.style.getPropertyValue('--fmess-avatar') !== avatarUrl) {
+        root.style.setProperty('--fmess-avatar', avatarUrl);
       }
     }
 
