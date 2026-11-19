@@ -13,12 +13,21 @@ html[data-fmess-chats] :is(div, span, a, h1, h2, h3, h4, input, textarea, button
   font-family: "Slack-Lato", "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
 }
 
-/* 1. Reset body and html margins/paddings completely */
+/* 1. Reset body and html margins/paddings & overflow completely (prevents window scrolling) */
+html,
 html[data-fmess-chats],
-html[data-fmess-chats] body {
+html body,
+html[data-fmess-chats] body,
+html._9dls body._6s5d,
+html[data-fmess-chats] body._6s5d {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
   box-sizing: border-box !important;
 }
 
@@ -49,15 +58,16 @@ div:has(> div[role="banner"]) {
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) {
   background-color: var(--sl-sidebar, #3f0e40) !important;
   min-width: 340px !important;
-  padding-top: 40px !important;
-  height: 100vh !important;
+  padding-top: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
   box-sizing: border-box !important;
 }
 
 html[data-fmess-chats] [role="main"] {
-  margin: 40px 4px 4px 0 !important;
-  height: calc(100vh - 44px) !important;
-  max-height: calc(100vh - 44px) !important;
+  margin: 0 4px 4px 0 !important;
+  height: calc(100% - 4px) !important;
+  max-height: calc(100% - 4px) !important;
   box-sizing: border-box !important;
   border-radius: 0 6px 6px 0 !important;
   overflow: hidden !important;

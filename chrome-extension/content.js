@@ -311,6 +311,9 @@
     syncActiveChat(list);
     syncChromeExtras();
     hideNativeFbElements();
+    if (window.scrollY !== 0 || window.scrollX !== 0) {
+      window.scrollTo(0, 0);
+    }
   };
 
   const hideNativeFbElements = () => {
@@ -369,6 +372,17 @@
 
   // Periodic fallback check
   setInterval(syncAll, 1000);
+
+  // Prevent whole-window scrolling
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (isEnabled && (window.scrollY !== 0 || window.scrollX !== 0)) {
+        window.scrollTo(0, 0);
+      }
+    },
+    { passive: true }
+  );
 
   // MutationObserver for instant DOM updates
   const observer = new MutationObserver(() => {
