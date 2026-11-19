@@ -267,6 +267,19 @@
           mark(calls[0], 'audio-call');
           mark(calls[1], 'video-call');
         }
+
+        // Ensure actions container is pinned to the far right
+        const actionEl = calls[0] || info;
+        if (headerLink && actionEl) {
+          let actionsWrap = actionEl.parentElement;
+          while (actionsWrap && actionsWrap.parentElement && !actionsWrap.parentElement.contains(headerLink)) {
+            actionsWrap = actionsWrap.parentElement;
+          }
+          if (actionsWrap && actionsWrap !== header) {
+            actionsWrap.style.setProperty('margin-left', 'auto', 'important');
+            mark(actionsWrap, 'header-actions');
+          }
+        }
       }
     }
     markReactions();
