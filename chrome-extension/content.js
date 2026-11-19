@@ -78,7 +78,9 @@
     const composer = region && !region.contains(log) ? region : null;
     if (composer) markComposer(composer);
 
-    if (details) mark(details, 'details');
+    if (details && !details.querySelector('[role="textbox"]') && !details.contains(textbox)) {
+      mark(details, 'details');
+    }
     mark(list?.querySelector('[role="button"][aria-haspopup="menu"]:not([role="grid"] *)'), 'list-menu');
 
     if (log && !(markedInfo?.isConnected && main.contains(markedInfo))) {
@@ -226,15 +228,48 @@
     const log = main.querySelector('[role="log"]');
     if (!log) return null;
 
-    let el = log;
-    while (el && el !== main) {
-      const row = el.parentElement;
-      if (row && row.children.length > 1 && row.firstElementChild === el) {
-        return el.nextElementSibling;
+    let cur = log;
+    while (cur && cur !== main) {
+      const parent = cur.parentElement;
+      if (parent) {
+        const children = Array.from(parent.children);
+        const idx = children.indexOf(cur);
+        if (idx !== -1 && idx < children.length - 1) {
+          const next = children[idx + 1];
+          const curRect = cur.getBoundingClientRect();
+          const nextRect = next.getBoundingClientRect();
+          // Next must be horizontally to the right
+          if (
+            nextRect.left >= curRect.right - 40 &&
+            nextRect.width > 50 &&
+            !next.querySelector('[role="textbox"][contenteditable="true"]')
+          ) {
+            return next;
+          }
+        }
       }
-      el = el.parentElement;
+      cur = cur.parentElement;
     }
     return null;
+  };
+
+  const syncActiveChat = (list) => {
+    if (!list) return;
+    const links = list.querySelectorAll('a[role="link"]');
+    const currentPath = window.location.pathname;
+    for (const a of links) {
+      const href = a.getAttribute('href') || '';
+      const isPathActive = currentPath.length > 5 && href.includes(currentPath);
+      const isClassActive = a.classList.contains('x1av1boa') || a.classList.contains('x1obq294') || a.getAttribute('aria-current') === 'page';
+      const isActive = isPathActive || isClassActive;
+      a.toggleAttribute('data-fmess-active-chat', isActive);
+      if (isActive) {
+        a.style.setProperty('--hosted-view-selected-state', '#1164a3');
+        a.style.setProperty('background-color', '#1164a3', 'important');
+      } else {
+        a.style.removeProperty('background-color');
+      }
+    }
   };
 
   // 4. Main sync loop
@@ -265,6 +300,7 @@
     if (list && !list.hasAttribute(LIST_PANE)) {
       document.querySelector(`[${LIST_PANE}]`)?.removeAttribute(LIST_PANE);
       list.setAttribute(LIST_PANE, '');
+      list.setAttribute('data-fmess-list', '');
     }
 
     const log = main?.querySelector('[role="log"]');
@@ -272,6 +308,7 @@
 
     markUi(main, list, log, details);
     syncSenderInfo();
+    syncActiveChat(list);
     syncChromeExtras();
     hideNativeFbElements();
   };
@@ -280,11 +317,15 @@
     // Hide native left navigation rail
     for (const nav of document.querySelectorAll('nav, [role="navigation"]')) {
       if (nav.hasAttribute(LIST_PANE)) continue;
+      const aria = (nav.getAttribute('aria-label') || '').toLowerCase();
       if (
-        nav.querySelector('a[href*="/messages/"]') ||
-        nav.getAttribute('aria-label')?.toLowerCase().includes('messenger') ||
-        nav.getAttribute('aria-label')?.toLowerCase().includes('facebook') ||
-        nav.getAttribute('aria-label')?.toLowerCase().includes('đoạn chat')
+        aria.includes('switcher') ||
+        aria.includes('inbox') ||
+        aria.includes('hộp thư') ||
+        aria.includes('messenger') ||
+        aria.includes('facebook') ||
+        aria.includes('đoạn chat') ||
+        nav.querySelector('a[href*="/messages/"]')
       ) {
         nav.style.setProperty('display', 'none', 'important');
       }

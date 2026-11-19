@@ -44,8 +44,8 @@
   --sl-row-hover: rgba(249, 237, 255, 0.08);
   --sl-chrome-line: rgba(249, 237, 255, 0.22);
   --sl-chrome-sep: rgba(249, 237, 255, 0.13);
-  --sl-selected: #f9edff;
-  --sl-on-selected: #39063a;
+  --sl-selected: #1164a3;
+  --sl-on-selected: #ffffff;
   --sl-badge: #eabdfb;
   --sl-on-badge: #39063a;
   /* The messages (Slack's base tokens). */
@@ -95,8 +95,8 @@ html[data-fmess-dark] {
   --sl-row-hover: rgba(239, 225, 245, 0.08);
   --sl-chrome-line: rgba(239, 225, 245, 0.22);
   --sl-chrome-sep: rgba(239, 225, 245, 0.13);
-  --sl-selected: #7d3986;
-  --sl-on-selected: #efe1f5;
+  --sl-selected: #1164a3;
+  --sl-on-selected: #ffffff;
   --sl-badge: #cfa1de;
   --sl-on-badge: #200221;
   --sl-base: #1a1d21;

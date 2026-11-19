@@ -6,6 +6,13 @@
   --sl-sender-fallback: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23611f69'/%3E%3Cpath d='M18 10a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-8 16c0-4 4-6 8-6s8 2 8 6z' fill='%23ffffff' opacity='0.85'/%3E%3C/svg%3E");
 }
 
+/* 0. Reliable crisp Slack font stack across all text elements (fixes redacted/blank glyphs) */
+html[data-fmess-chats],
+html[data-fmess-chats] body,
+html[data-fmess-chats] :is(div, span, a, h1, h2, h3, h4, input, textarea, button, label, p) {
+  font-family: "Slack-Lato", "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
 /* 1. Reset body and html margins/paddings completely */
 html[data-fmess-chats],
 html[data-fmess-chats] body {
@@ -16,6 +23,9 @@ html[data-fmess-chats] body {
 }
 
 /* 2. HIDE Facebook's native left navigation bar (prevents double rail & overlapping text/icons) */
+[aria-label="Inbox switcher"],
+[aria-label*="switcher"],
+[aria-label*="Chuyển đổi hộp thư"],
 [role="navigation"]:not([data-fmess-list]),
 nav[aria-label*="Messenger"],
 nav[aria-label*="Facebook"],
@@ -36,7 +46,7 @@ div:has(> div[role="banner"]) {
 }
 
 /* 4. Fix vertical alignment: Chats list and Main pane both start directly below 40px top bar */
-html[data-fmess-chats] [data-fmess-list] {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) {
   background-color: var(--sl-sidebar, #3f0e40) !important;
   min-width: 340px !important;
   padding-top: 40px !important;
@@ -61,80 +71,104 @@ html[data-fmess-chats] [role="main"] > div {
 }
 
 /* 5. Fix Chats column background & elements */
-html[data-fmess-chats] [data-fmess-list] div[style*="background-color: rgb(255, 255, 255)"],
-html[data-fmess-chats] [data-fmess-list] div[style*="background: rgb(255, 255, 255)"],
-html[data-fmess-chats] [data-fmess-list] [role="grid"],
-html[data-fmess-chats] [data-fmess-list] [role="grid"] > div {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) div[style*="background-color: rgb(255, 255, 255)"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) div[style*="background: rgb(255, 255, 255)"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="grid"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="grid"] > div {
   background-color: transparent !important;
   background: transparent !important;
 }
 
 /* "Chats" title and controls */
-html[data-fmess-chats] [data-fmess-list] h1,
-html[data-fmess-chats] [data-fmess-list] h1 * {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1 * {
   color: #ffffff !important;
 }
 
 /* Search input inside Chats sidebar */
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]),
-html[data-fmess-chats] [data-fmess-list] input[type="search"] {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) label:has(input[type="search"]),
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) input[type="search"] {
   background-color: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
   border-radius: 6px !important;
   border: none !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] input[type="search"]::placeholder {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) input[type="search"]::placeholder {
   color: rgba(255, 255, 255, 0.65) !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) svg {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) label:has(input[type="search"]) svg {
   fill: rgba(255, 255, 255, 0.7) !important;
   color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Conversation thread rows */
-html[data-fmess-chats] [data-fmess-list] [role="row"] a {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"] {
   border-radius: 6px !important;
   margin: 1px 8px !important;
   padding: 6px 8px !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] [role="row"]:hover a,
-html[data-fmess-chats] [data-fmess-list] [role="row"] a:hover {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"]:hover a,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a:hover,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"]:hover {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"] {
-  background-color: #1164A3 !important; /* Slack Active DM Blue */
+/* Active DM - signature Slack active blue */
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][aria-current="page"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][data-fmess-active-chat],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"].x1av1boa,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][class*="x1av1boa"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[data-fmess-active-chat],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a.x1av1boa,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[class*="x1av1boa"] {
+  background: #1164A3 !important; /* Slack Active DM Blue */
+  background-color: #1164A3 !important;
+  border-radius: 6px !important;
 }
 
 /* Row text styling */
-html[data-fmess-chats] [data-fmess-list] [role="row"] span {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] span,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"] span {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] [role="row"] span:last-child {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] span:last-child,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[role="link"] span[class*="xuxw1ft"] {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"] span {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][aria-current="page"] span,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][data-fmess-active-chat] span,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[data-fmess-active-chat] span,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[class*="x1av1boa"] span,
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[aria-current="page"] span {
   color: #ffffff !important;
 }
 
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][aria-current="page"] span[class*="xuxw1ft"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] a[role="link"][data-fmess-active-chat] span[class*="xuxw1ft"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[data-fmess-active-chat] span[class*="xuxw1ft"],
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[class*="x1av1boa"] span[class*="xuxw1ft"] {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
 /* Rounded-square avatars across conversation rows */
-html[data-fmess-chats] [data-fmess-list] [role="row"] :is(img, svg, svg circle, [role="img"]) {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] :is(img, svg, svg circle, [role="img"]) {
   border-radius: 8px !important;
 }
 
-html[data-fmess-chats] [data-fmess-list] [role="row"] svg circle {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] svg circle {
   rx: 8px !important;
   ry: 8px !important;
 }
 
 /* Hide unread blue dot from row */
-html[data-fmess-chats] [data-fmess-list] [role="row"] [style*="border-radius: 50%"][style*="background"] {
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] [style*="border-radius: 50%"][style*="background"] {
   display: none !important;
 }
 
@@ -143,8 +177,16 @@ html[data-fmess-chats] [data-fmess-ui="details"] {
   width: 320px !important;
   min-width: 320px !important;
   max-width: 320px !important;
-  flex: none !important;
+  flex: 0 0 320px !important;
   border-left: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-sizing: border-box !important;
+}
+
+/* NEVER display injected pseudo-element label on details */
+html[data-fmess-chats] [data-fmess-ui="details"]::before,
+html[data-fmess-chats] [role="main"] [data-fmess-ui="details"]::before {
+  display: none !important;
+  content: none !important;
 }
 
 html[data-fmess-dark] [data-fmess-ui="details"] {
