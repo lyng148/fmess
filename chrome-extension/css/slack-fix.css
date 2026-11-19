@@ -2,24 +2,65 @@
 
 :root {
   --sl-band: 40px !important;
-  --header-height: 40px !important;
+  --header-height: 0px !important;
   --sl-sender-fallback: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23611f69'/%3E%3Cpath d='M18 10a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-8 16c0-4 4-6 8-6s8 2 8 6z' fill='%23ffffff' opacity='0.85'/%3E%3C/svg%3E");
 }
 
-/* 1. Prevent top band from covering Messenger content */
+/* 1. Reset body and html margins/paddings completely */
 html[data-fmess-chats],
 html[data-fmess-chats] body {
-  padding-top: 40px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
-/* 2. Fix Chats column background & elements */
+/* 2. HIDE Facebook's native left navigation bar (prevents double rail & overlapping text/icons) */
+[role="navigation"]:not([data-fmess-list]),
+nav[aria-label*="Messenger"],
+nav[aria-label*="Facebook"],
+div:has(> a[aria-label*="Messenger"]),
+div:has(> a[aria-label*="Đoạn chat"]) {
+  display: none !important;
+}
+
+/* 3. Collapse Facebook's top banner & wrapper completely */
+div[role="banner"],
+div:has(> div[role="banner"]) {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 4. Fix vertical alignment: Chats list and Main pane both start directly below 40px top bar */
 html[data-fmess-chats] [data-fmess-list] {
   background-color: var(--sl-sidebar, #3f0e40) !important;
   min-width: 340px !important;
+  padding-top: 40px !important;
+  height: 100vh !important;
   box-sizing: border-box !important;
 }
 
+html[data-fmess-chats] [role="main"] {
+  margin: 40px 4px 4px 0 !important;
+  height: calc(100vh - 44px) !important;
+  max-height: calc(100vh - 44px) !important;
+  box-sizing: border-box !important;
+  border-radius: 0 6px 6px 0 !important;
+  overflow: hidden !important;
+  background: var(--sl-base) !important;
+  box-shadow: var(--sl-pane-shadow) !important;
+}
+
+/* Fix empty state / no chat selected background */
+html[data-fmess-chats] [role="main"] > div {
+  background: var(--sl-base) !important;
+}
+
+/* 5. Fix Chats column background & elements */
 html[data-fmess-chats] [data-fmess-list] div[style*="background-color: rgb(255, 255, 255)"],
 html[data-fmess-chats] [data-fmess-list] div[style*="background: rgb(255, 255, 255)"],
 html[data-fmess-chats] [data-fmess-list] [role="grid"],
@@ -97,7 +138,7 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] [style*="border-radius: 50
   display: none !important;
 }
 
-/* 3. Details Sidebar styling & width control */
+/* 6. Details Sidebar styling & width control */
 html[data-fmess-chats] [data-fmess-ui="details"] {
   width: 320px !important;
   min-width: 320px !important;
@@ -114,7 +155,7 @@ html[data-fmess-chats] [data-fmess-ui="details"] :is(img, svg, svg circle) {
   border-radius: 12px !important;
 }
 
-/* 4. Top Search Box (#fmess-search-box) */
+/* 7. Top Search Box (#fmess-search-box) */
 #fmess-search-box {
   position: fixed !important;
   z-index: 2147483000 !important;

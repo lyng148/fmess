@@ -273,6 +273,29 @@
     markUi(main, list, log, details);
     syncSenderInfo();
     syncChromeExtras();
+    hideNativeFbElements();
+  };
+
+  const hideNativeFbElements = () => {
+    // Hide native left navigation rail
+    for (const nav of document.querySelectorAll('nav, [role="navigation"]')) {
+      if (nav.hasAttribute(LIST_PANE)) continue;
+      if (
+        nav.querySelector('a[href*="/messages/"]') ||
+        nav.getAttribute('aria-label')?.toLowerCase().includes('messenger') ||
+        nav.getAttribute('aria-label')?.toLowerCase().includes('facebook') ||
+        nav.getAttribute('aria-label')?.toLowerCase().includes('đoạn chat')
+      ) {
+        nav.style.setProperty('display', 'none', 'important');
+      }
+    }
+    // Collapse native top banner and wrappers
+    for (const banner of document.querySelectorAll('[role="banner"]')) {
+      banner.style.setProperty('display', 'none', 'important');
+      if (banner.parentElement && banner.parentElement !== document.body) {
+        banner.parentElement.style.setProperty('display', 'none', 'important');
+      }
+    }
   };
 
   // 5. Typing turns like into send
