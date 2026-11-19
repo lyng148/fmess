@@ -95,13 +95,29 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) h1 * {
   color: #ffffff !important;
 }
 
-/* Search input inside Chats sidebar */
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) label:has(input[type="search"]),
-html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) input[type="search"] {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
+/* Search input inside Chats sidebar - seamless single box */
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) label:has(input[type="search"]) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
   border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 32px !important;
+}
+
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) input[type="search"] {
+  background: transparent !important;
+  background-color: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  padding: 4px 6px !important;
+  height: 28px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) input[type="search"]::placeholder {
@@ -167,11 +183,16 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) a[class*="
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Rounded-square avatars across conversation rows */
+/* Rounded-square avatars across conversation rows and wrappers */
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) :is(.x1c9tyrk, [class*="x1c9tyrk"], [style*="50%"], [style*="border-radius: 50%"], img, svg, [role="img"]) {
+  border-radius: 8px !important;
+}
+
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] :is(img, svg, svg circle, [role="img"]) {
   border-radius: 8px !important;
 }
 
+html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) svg circle,
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] svg circle {
   rx: 8px !important;
   ry: 8px !important;
@@ -180,6 +201,15 @@ html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row
 /* Hide unread blue dot from row */
 html[data-fmess-chats] :is([data-fmess-list], [data-fmess-list-pane]) [role="row"] [style*="border-radius: 50%"][style*="background"] {
   display: none !important;
+}
+
+/* Rounded avatars in message stream */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] :is(img, .x1c9tyrk, [class*="x1c9tyrk"]) {
+  border-radius: 8px !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-fmess-sender-start]::before {
+  border-radius: 8px !important;
 }
 
 /* 6. Details Sidebar styling & width control */
@@ -241,3 +271,78 @@ html[data-fmess-chats] [data-fmess-ui="details"] :is(img, svg, svg circle) {
   background: #ffffff !important;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9'/%3E%3C/svg%3E") center / 16px 16px no-repeat !important;
 }
+
+/* 8. Reply quote alignment: single baseline matching Slack link quote */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"] {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"]::before {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 400 !important;
+  color: var(--sl-text-3, #616061) !important;
+  margin-right: 6px !important;
+  display: inline-block !important;
+  vertical-align: baseline !important;
+}
+
+/* Hide Facebook's "Original message:" screen-reader element that displaces layout */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"] [tabindex="-1"] {
+  display: none !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"] [dir="auto"],
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) [role="button"] span {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 700 !important;
+  vertical-align: baseline !important;
+}
+
+/* 9. Compact Sender Name & Tight Message Gap */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  line-height: 18px !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span,
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span:only-child {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 18px !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span::before,
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4::before {
+  line-height: 18px !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  padding: 0 !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 > span::after,
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4::after {
+  line-height: 18px !important;
+  font-size: 12px !important;
+  margin-left: 6px !important;
+  color: var(--sl-text-3, #616061) !important;
+  padding: 0 !important;
+}
+
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [data-message-id] [dir="auto"],
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] div:has(> [data-message-id]) {
+  margin-top: 1px !important;
+  padding-top: 0 !important;
+}
+

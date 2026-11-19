@@ -253,6 +253,21 @@
     return null;
   };
 
+  const syncAvatars = (list) => {
+    if (!list) return;
+    const targets = list.querySelectorAll('.x1c9tyrk, [class*="x1c9tyrk"], img, svg, [role="img"]');
+    for (const el of targets) {
+      if (el.tagName.toLowerCase() === 'circle') {
+        el.setAttribute('rx', '8');
+        el.setAttribute('ry', '8');
+      } else {
+        if (el.style.borderRadius !== '8px') {
+          el.style.setProperty('border-radius', '8px', 'important');
+        }
+      }
+    }
+  };
+
   const syncActiveChat = (list) => {
     if (!list) return;
     const links = list.querySelectorAll('a[role="link"]');
@@ -307,6 +322,7 @@
     const details = findDetails(main);
 
     markUi(main, list, log, details);
+    syncAvatars(list);
     syncSenderInfo();
     syncActiveChat(list);
     syncChromeExtras();
