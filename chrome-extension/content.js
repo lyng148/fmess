@@ -64,12 +64,27 @@
       const path = pathOf(button);
       const icon = COMPOSER_ICONS.find(([start]) => path.startsWith(start))?.[1];
       const end = composer.lastElementChild?.tagName === 'SPAN' && composer.lastElementChild.contains(button);
-      const like = button.querySelector('img') || path.startsWith(THUMBS_UP);
+      const aria = (button.getAttribute('aria-label') || '').toLowerCase();
+      const isSendAria =
+        aria.includes('enter to send') ||
+        aria.includes('để gửi') ||
+        aria === 'send' ||
+        aria === 'gửi';
+      const isLike =
+        aria.includes('👍') ||
+        aria.includes('like') ||
+        aria.includes('thích') ||
+        aria.includes('❤️') ||
+        aria.includes('tim') ||
+        aria.includes('heart') ||
+        button.querySelector('img') ||
+        path.startsWith(THUMBS_UP) ||
+        (!isSendAria && !path.startsWith('M16.6915026,12.4744748'));
 
       if (isMoreActionsAria(button)) mark(button, 'more-actions');
       else if (icon) mark(button, icon);
       else if (!path && button.querySelector('svg')) mark(button, 'record-stop');
-      else if (end) mark(button, like ? 'like' : 'send');
+      else if (end) mark(button, isLike ? 'like' : 'send');
       else if (recording && !field?.contains(button)) mark(button, 'record-play');
       else if (!field?.contains(button)) mark(button, 'more-actions');
     }

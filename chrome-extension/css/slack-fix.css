@@ -394,6 +394,40 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] div:has(> [da
   height: 28px !important;
 }
 
+[data-fmess-ui="composer"] [data-fmess-emoji-wrap],
+[data-fmess-ui="composer"] [data-fmess-emoji-wrap] > span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-ui="emoji"] {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: content-box !important;
+}
+
 [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="voice-clip"]) {
   order: 3 !important;
 }
@@ -434,6 +468,45 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] div:has(> [da
 
 [data-fmess-ui="composer"] [data-fmess-synthetic-voice] svg * {
   visibility: hidden !important;
+}
+
+/* 11. Send and Like (Heart/Reaction) Button Precision Centering */
+/* In empty state, hide the native reaction button so only Slack's grey split send button pseudo-element shows cleanly without overlapping */
+[data-fmess-ui="composer"] [data-fmess-ui="like"] {
+  display: none !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-ui="send"] {
+  width: 53px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+}
+
+[data-fmess-ui="composer"] [data-fmess-ui="send"] svg {
+  width: 53px !important;
+  height: 28px !important;
+  min-width: 53px !important;
+  min-height: 28px !important;
+  max-width: 53px !important;
+  max-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+[data-fmess-ui="composer"] > span:has(> :is([data-fmess-ui="send"], [data-fmess-ui="like"])) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
 }
 
 
